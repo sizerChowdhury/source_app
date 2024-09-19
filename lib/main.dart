@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:source_app/src/messages.g.dart';
 
 void main() {
-  runApp(const SourceApp());
+  runApp(SourceApp());
 }
 
 class SourceApp extends StatelessWidget {
@@ -10,44 +11,42 @@ class SourceApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'Source App',
+    return MaterialApp(
+      title: 'Source',
       home: SourceHomePage(),
     );
   }
 }
 
 class SourceHomePage extends StatefulWidget {
-  const SourceHomePage({super.key});
-
   @override
   _SourceHomePageState createState() => _SourceHomePageState();
 }
 
 class _SourceHomePageState extends State<SourceHomePage> {
-  static const platform = MethodChannel('com.example.source_app/deep_link');
-  final String imageUrl = 'https://www.gstatic.com/webp/gallery3/1.sm.png';
-
-  Future<void> _openDestinationApp() async {
-    try {
-      await platform.invokeMethod('openDestinationApp', {'message': imageUrl});
-    } on PlatformException catch (e) {
-      print("Failed to open destination app: '${e.message}'.");
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Source App'),
+        title: Text('Source App'),
       ),
       body: Center(
-        child: ElevatedButton(
-          onPressed: _openDestinationApp,
-          child: const Text('Go to Destination App'),
+        child: TextButton(
+          onPressed: _navigateDestination,
+          child: Text('Navigate to Destination App'),
         ),
       ),
     );
+  }
+
+  Future<void> _navigateDestination() async {
+    try {
+      const imageUrl = 'https://picsum.photos/id/237/200/300';
+      // const imageUrl = 'https://picsum.photos/200/300?grayscale';
+      final ExampleHostApi _api = ExampleHostApi();
+      await _api.sendMessage(imageUrl);
+    } on PlatformException catch (e) {
+      print("Failed to open destination app: '${e.message}'.");
+    }
   }
 }

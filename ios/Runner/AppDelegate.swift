@@ -2,8 +2,18 @@ import UIKit
 import Flutter
 
 @main
-@objc class AppDelegate: FlutterAppDelegate {
+@objc class AppDelegate: FlutterAppDelegate, ExampleHostApi {
+
     private let CHANNEL = "com.example.source_app/deep_link"
+
+    func getHostLanguage() throws -> String {
+        return "Swift"
+    }
+
+    func sendMessage(message: String) throws {
+        print("Message received from Flutter: \(message)")
+        openDestinationApp(message: message)
+    }
 
     override func application(
         _ application: UIApplication,
@@ -12,8 +22,10 @@ import Flutter
         GeneratedPluginRegistrant.register(with: self)
 
         let controller: FlutterViewController = window?.rootViewController as! FlutterViewController
-        let methodChannel = FlutterMethodChannel(name: CHANNEL, binaryMessenger: controller.binaryMessenger)
 
+        ExampleHostApiSetup.setUp(binaryMessenger: controller.binaryMessenger, api: self)
+
+        let methodChannel = FlutterMethodChannel(name: CHANNEL, binaryMessenger: controller.binaryMessenger)
         methodChannel.setMethodCallHandler { (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
             if call.method == "openDestinationApp" {
                 if let args = call.arguments as? [String: Any], let message = args["message"] as? String {
@@ -27,7 +39,6 @@ import Flutter
             }
         }
 
-
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
 
@@ -39,5 +50,4 @@ import Flutter
             }
         }
     }
-
 }

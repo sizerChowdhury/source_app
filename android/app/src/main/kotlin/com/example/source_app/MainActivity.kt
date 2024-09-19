@@ -5,28 +5,35 @@ import android.net.Uri
 import android.os.Bundle
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.plugin.common.MethodChannel
+import android.content.Context
+import io.flutter.plugin.common.BinaryMessenger
+import io.flutter.embedding.engine.FlutterEngine
+
+import ExampleHostApi
+import FlutterError
+
+class PigeonApiImplementation(private val context: Context) : ExampleHostApi {
+    override fun getHostLanguage(): String {
+        return "Kotlin"
+    }
+
+    override fun sendMessage(message: String) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("example://destination?message=$message"))
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        context.startActivity(intent)
+    }
+
+}
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.example.source_app/deep_link"
 
-    override fun configureFlutterEngine(flutterEngine: io.flutter.embedding.engine.FlutterEngine) {
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        val binaryMessenger: BinaryMessenger = flutterEngine.dartExecutor.binaryMessenger
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
-            if (call.method == "openDestinationApp") {
-                val message = call.argument<String>("message") ?: "No message"
-                openDestinationApp(message)
-                result.success("Opened destination app with message: $message")
-            } else {
-                result.notImplemented()
-            }
-        }
+        ExampleHostApi.setUp(binaryMessenger, PigeonApiImplementation(this))
+
     }
 
-    private fun openDestinationApp(message: String) {
-        val uri = Uri.parse("example://destination?message=$message")
-        val intent = Intent(Intent.ACTION_VIEW, uri)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        startActivity(intent)
-    }
+
 }
